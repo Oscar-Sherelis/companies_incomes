@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Companies and incomes</title>
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <main>
+        <input type="text" class="company_name" placeholder="Enter company name">
+        <table>
+            <thead>
+                <th>id</th>
+                <th>name</th>
+                <th>city</th>
+                <th>total income</th>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <div class="pages">
+            <input type="button" id="first" onclick="firstPage()" value="first" />
+            <input type="button" id="next" onclick="nextPage()" value="next" />
+            <input type="button" id="previous" onclick="previousPage()" value="previous" />
+            <input type="button" id="last" onclick="lastPage()" value="last" />
+            <div id="list"></div>
+            </div>
+            <select id="my-select">
+                <option selected value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+            </select>
+    </main>
+    <script src="./js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+table {
+    margin: 0 auto;
+}
+#my-select {
+    margin: 5px auto;
+    display: block;
+}
+th, td {
+    padding: 8px;
+}
+th {
+    font-weight: bold;
+}
+main {
+    display: none;
+}
+.pages {
+    text-align: center;
+}
+.selected_cn:hover {
+ cursor: pointer;
+}
