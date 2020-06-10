@@ -1,8 +1,12 @@
+// option select dates
+let allDates = [];
+// filtered year and month starting values
+let lastYear = 0;
+let filteredMonth = 0;
+let filterDatesBtnPressed = false;
 
-// https://www.thatsoftwaredude.com/content/6125/how-to-paginate-through-a-collection-in-javascript
-// http://jsfiddle.net/zscQy/446/
-// https://github.com/Oscar-Sherelis/tswork
-// http://jsfiddle.net/zscQy/446/
+let selectedStartDate = '';
+let selectedEndDate = '';
 
 // pagination start
 let list = new Array();
@@ -10,6 +14,10 @@ let pageList = new Array();
 let currentPage = 1;
 let numberPerPage = 10;
 let numberOfPages = 0;
+
+// incomes
+let averageIncome = 0;
+let filteredIncome = 0;
 
 function getNumberOfPages() {
     return Math.ceil(list.length / numberPerPage);
@@ -44,36 +52,97 @@ function loadList() {
     check();
 }
 
+// load select with dates into options start
+function startEndDate (collectedDates) {
+
+    let startDateSelect = document.createElement('select');
+    startDateSelect.setAttribute('class', 'start_date');
+
+    let endDateSelect = document.createElement('select');
+    endDateSelect.setAttribute('class', 'end_date')
+
+    document.querySelector('body')
+    .append(startDateSelect);
+    document.querySelector('body')
+    .append(endDateSelect);
+
+    collectedDates.forEach(stringDate => {
+        let startOption = document.createElement('option')
+        let endOption = document.createElement('option');
+        
+        startOption.value = stringDate;
+        startOption.text = stringDate;
+        startDateSelect.appendChild(startOption);
+
+        endOption.text = stringDate;
+        endOption.value = stringDate;
+        endDateSelect.appendChild(endOption);
+    })
+
+    let filterDateBtn = document.createElement('button');
+    filterDateBtn.setAttribute('class', 'filter_date');
+    filterDateBtn.append('Limit salaries by date')
+
+    document.querySelector('body').append(filterDateBtn);
+
+    // filterDateBtn.addEventListener('click', () => {
+    //     // filterDatesBtnPressed = true;
+    //     // toCompany();
+
+    //     fetch('https://recruitment.hal.skygate.io/incomes/' + list[0].id)
+    //         .then(res => {
+    //             return res.json();
+    //             }).then(incomeData => {
+    //                 incomeData.incomes.forEach(income => { 
+    //                     filterIncomesByDate(allDates, filteredIncome, parseFloat(income.value))
+    //                     })
+    //                     console.log(filteredIncome)
+    //                 })
+    // })
+}
+
+function filterIncomesByDate (dateFromApi, averageIncomeResult, income) {
+    averageIncomeResult = 0;
+    let selectedStartingDate = selectedStartDate.split('-');
+    let selectedFinishDate = selectedEndDate.split('-');
+    
+    dateFromApi.forEach(dateString => {
+        dateString = dateString.slice(0, 10).split('-');
+        // console.log('selected year' + selectedStartingDate)
+        if (parseInt(dateString[0]) >= parseInt(selectedStartingDate[0])
+            && parseInt(dateString[1]) >= parseInt(selectedStartingDate[1])
+            && parseInt(dateString[2]) >= parseInt(selectedStartingDate[2])
+            && parseInt(dateString[0]) <= parseInt(selectedFinishDate[0])
+            && parseInt(dateString[1]) <= parseInt(selectedFinishDate[1])
+            && parseInt(dateString[2]) <= parseInt(selectedFinishDate[2])
+            ) {
+                averageIncomeResult += income;
+        }
+    })
+    return averageIncomeResult
+    // dateFromApi = dateFromApi.slice(0, 10).split('-');
+}
+// limit incomes by date end
+
 function drawList() {
 pageList.forEach(obj => {
     let tr = document.createElement('tr');
         addTd(tr, obj.id);
-        addNameTd(tr, obj.name);
+        addTd(tr, obj.name, 'selected_cn');
         addTd(tr, obj.city);
         fetch('https://recruitment.hal.skygate.io/incomes/' + obj.id)
         .then(incomeRes => {
         return incomeRes.json();
         })
         .then(incomeData => {
-            let incomeSum = 0;
-            let result = incomeData.incomes;
-            // result = result.sort((a, b) => b.date - a.date)
-            result.sort(function(a, b) {
-                var distancea = Math.abs(a.date);
-                var distanceb = Math.abs(b.date);
-                return distancea - distanceb; // sort a before b when the distance is smaller
-            });
-            console.log('Data' + result[0].date)
-            // find date, by this date find incomes and sum them
+            incomeSum = 0;
             incomeData.incomes.forEach(incomeObj => {
                 incomeSum += parseFloat(incomeObj.value);
-                // console.log(incomeObj.date)
             })
-            addTd(tr, incomeSum.toFixed(2));
+            addTd(tr, incomeSum.toFixed(2), 'income_sum');
             if (document.querySelector('.average')) {
-                addTd(tr, list[0].average_income.toFixed(2))
+                addTd(tr, list[0].average_income.toFixed(2), 'average_income')
                 addTd(tr, list[0].last_month_salary.toFixed(2))
-                // here add last month
             }
         })
         
@@ -95,18 +164,12 @@ document.getElementById('my-select').addEventListener('change', function() {
 // end of pagination
 
 // add td functions
-function addTd(tr, tdValue) {
+function addTd(tr, tdValue, className = '') {
     let td = document.createElement('td');
+    td.setAttribute('class', className)
     td.append(tdValue);
     tr.append(td);
   }
-
-function addNameTd(tr, tdValue) {
-    let td = document.createElement('td');
-    td.setAttribute('class', 'selected_cn')
-    td.append(tdValue);
-    tr.append(td);
-}
 
 function addTh(thValue) {
     let th = document.createElement('th');
@@ -136,37 +199,102 @@ function toCompany () {
                         .then(res => {
                         return res.json();
                             }).then(incomeData => {
-                                let averageIncome = 0;
                                 let dateYear = [];
-                                let dateMonth = [];
                                 incomeData.incomes.forEach(income => {
-                                    averageIncome += parseFloat(income.value);
-                                    let strDate = income.date.slice(0, 10).split('-');
-                                    dateYear.push(parseInt(strDate[0]));
-                                    dateMonth.push(parseInt(strDate[1]));
-                                })
-                                let maxYear = Math.max(...dateYear);
-                                let maxMonth = Math.max(...dateMonth);
-                                if (maxMonth < 10) { maxMonth = '0' + maxMonth}
-                                let lastMonth = maxYear + '-' + maxMonth;
+                                        averageIncome += parseFloat(income.value);
 
-                                let lastMonthSalary = 0;
-                                incomeData.incomes.forEach(obj => {
-                                    console.log(obj.date)
-                                    if(obj.date.includes(toString(lastMonth))) {
-                                        lastMonthSalary += parseFloat(obj.value)
+                                        // data for option values
+                                        if(!allDates.includes(income.date.slice(0, 10))) {
+                                            allDates.push(income.date.slice(0, 10))
+                                        }
+
+
+                                    let strYear = income.date.slice(0, 10).split('-');
+                                    dateYear.push(parseInt(strYear[0]));
+
+                                })
+                                // filter by Year
+                                lastYear = Math.max(...dateYear);
+                                let filteredByYear = [];
+                                incomeData.incomes.forEach(income => {
+                                    if (income.date.includes(lastYear)) {
+                                        filteredByYear.push(income.date);
                                     }
                                 })
-                                console.log(lastMonth)
+
+                                // after filter by year done filter by month
+                                let dateMonth = [];
+                                filteredByYear.forEach(date => {
+                                    let strMonth = date.slice(0, 10).split('-');
+                                    dateMonth.push(strMonth[1]);
+                                })
+                                lastMonth = Math.max(...dateMonth);
+                                if (lastMonth < 10) { lastMonth = '0' + lastMonth}
+                                dateMonth.forEach(month => {
+                                    if (month.includes(lastMonth)) {
+                                        filteredMonth = month;
+                                    }
+                                })
+
+                                let lastDate = lastYear + '-' + filteredMonth;
+
+                                // from generated date find last month salary
+                                let lastMonthSalary = 0;
+                                incomeData.incomes.forEach(obj => {
+                                    if(obj.date.includes(lastDate)) {
+                                        lastMonthSalary += parseFloat(obj.value);
+                                    }
+                                })
                                 averageIncome = averageIncome / incomeData.incomes.length;
-                                addTh('average income');
-                                addTh('last month income');
+                                if (filterDatesBtnPressed === false) {
+                                    addTh('average income');
+                                    addTh('last month income');
+                                }
                                 list[0].average_income = averageIncome;
                                 list[0].last_month_salary = lastMonthSalary;
+
+                                    startEndDate(allDates);
+                                        // event for selects and button
+                                    document.querySelector('.start_date').addEventListener('change', e => {
+                                        selectedStartDate = e.target.value;
+                                    });
+
+                                    document.querySelector('.end_date').addEventListener('change', e => {
+                                        selectedEndDate = e.target.value;
+                                    });
+                                    document.querySelector('.filter_date').addEventListener('click', () => {
+                                        fetch('https://recruitment.hal.skygate.io/incomes/' + list[0].id)
+                                            .then(res => {
+                                                return res.json();
+                                                }).then(incomeData => {
+                                                    let dateChangeResult = 0
+                                                    incomeData.incomes.forEach(income => { 
+                                                        dateChangeResult = filterIncomesByDate(allDates, filteredIncome, parseFloat(income.value));
+                                                        })
+                                                        document.querySelector('.income_sum').innerHTML = dateChangeResult.toFixed(2);
+                                                        document.querySelector('.average_income').innerHTML = (dateChangeResult / incomeData.incomes.length).toFixed(2)
+                                                    })
+                                    })
                             })
 
                         numberOfPages = getNumberOfPages();
-                        setTimeout(() =>{ firstPage(), 400});
+                        setTimeout(() =>{ firstPage();
+                            // document.querySelector('.filter_date').addEventListener('click', () => {
+                            //     // filterDatesBtnPressed = true;
+                            //     // toCompany();
+                        
+                            //     fetch('https://recruitment.hal.skygate.io/incomes/' + list[0].id)
+                            //         .then(res => {
+                            //             return res.json();
+                            //             }).then(incomeData => {
+                            //                 incomeData.incomes.forEach(income => { 
+                            //                     filterIncomesByDate(allDates, filteredIncome, parseFloat(income.value))
+                            //                     })
+                            //                     console.log(filteredIncome)
+                            //                 })
+                            // })
+                                          400});
+                        console.log(list)
                     })
             })
         })
@@ -188,7 +316,7 @@ fetch('https://recruitment.hal.skygate.io/companies')
                 })
                 .then(incomeData => {
                     incomeData.incomes.forEach(incomeObj => {
-                        incomeSum += parseFloat(incomeObj.value);
+                            incomeSum += parseFloat(incomeObj.value);
                     })
                     if (obj.id === incomeData.id) {
                         let afterFloat = incomeSum.toFixed(2);

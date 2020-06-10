@@ -5,11 +5,16 @@ table {
     margin: 5px auto;
     display: block;
 }
+tbody tr:nth-child(even) {
+    background-color: #f1f1f1;
+}
 th, td {
     padding: 8px;
+    text-align: center;
 }
 th {
     font-weight: bold;
+    background-color: #4caf50;
 }
 main {
     display: none;
@@ -19,4 +24,5 @@ main {
 }
 .selected_cn:hover {
  cursor: pointer;
+ border-bottom: 2px solid black;
 }
